@@ -1,0 +1,45 @@
+{
+  "development": {
+    "username": "root",
+    "password": "12345",
+    "database": "Prueba_daw",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "12345",
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "12345",
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+  {
+    "name": "taller-4-julio",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+      "start": "node app.js",
+      "devstart": "nodemon app.js"
+    },
+    "dependencies": {
+      "express": "^4.17.1",
+      "sequelize": "^6.3.5",
+      "mysql2": "^2.1.0",  
+      "ejs": "^3.1.5",
+      "morgan": "^1.10.0",
+      "cookie-parser": "^1.4.5",
+      "http-errors": "^1.8.0",
+      "path": "^0.12.7"
+    },
+    "devDependencies": {
+      "nodemon": "^2.0.7"
+    }
+}
