@@ -1,63 +1,58 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const app = express();
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var fotosRouter = require('./routes/fotos');
+// Conexión a MongoDB con Mongoose
+mongoose.connect('mongodb://localhost:27017/proyectoDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('Conexión a MongoDB exitosa'))
+  .catch(err => console.error('Error conectando a MongoDB', err));
 
-var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
+// Configuración de middlewares
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// Definición de esquemas y modelos
+const Cliente = mongoose.model('Cliente', new mongoose.Schema({
+  nombre: String,
+  apellido: String
+}));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/fotos', fotosRouter);
+const Producto = mongoose.model('Producto', new mongoose.Schema({
+  descrip: String,
+  stock: Number,
+  precio: Number
+}));
 
-// Nueva ruta para renderizar la vista de fotos
-const Foto = require('./models').foto;
-const Etiqueta = require('./models').etiqueta;
+const Pedido = mongoose.model('Pedido', new mongoose.Schema({
+  fecha: Date,
+  clienteId: mongoose.Schema.Types.ObjectId, // Cambié idcliente a clienteId para seguir convenciones
+  estado: String
+}));
 
-app.get('/fotos/findAll/json', async (req, res) => {
-  try {
-    const fotos = await Foto.findAll({
-      attributes: { exclude: ["updatedAt"] },
-      include: [{
-        model: Etiqueta,
-        attributes: ['texto'],
-        through: { attributes: [] }
-      }]
-    });
-    res.json(fotos); // Devuelve los datos en formato JSON
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+const ProdxPedido = mongoose.model('ProdxPedido', new mongoose.Schema({
+  productoId: mongoose.Schema.Types.ObjectId, // Cambié idprod a productoId
+  pedidoId: mongoose.Schema.Types.ObjectId // Cambié idpedido a pedidoId
+}));
+
+// Importación de rutas
+const clientesRouter = require('./routes/clientes')(Cliente); // Pasamos el modelo Cliente como argumento
+const productosRouter = require('./routes/productos')(Producto);
+const pedidosRouter = require('./routes/pedidos')(Pedido, Cliente);
+
+// Rutas
+app.use('/clientes', clientesRouter);
+app.use('/productos', productosRouter);
+app.use('/pedidos', pedidosRouter);
+
+app.get('/', (req, res) => {
+  res.render('index');
 });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// Iniciar servidor
+app.listen(3000, () => {
+  console.log('Servidor iniciado en el puerto 3000');
 });
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-module.exports = app;
